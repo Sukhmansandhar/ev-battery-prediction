@@ -118,19 +118,7 @@ if submitted:
         st.progress(
             min(max(health / 100, 0.0), 1.0)
         )
-          st.subheader("📈 Battery Health Visualization")
-
-          chart_data = pd.DataFrame(
-              {"Battery Health (%)": [health]},
-              index=["Current prediction"]
-          )
-
-          st.bar_chart(chart_data)
-
-          st.caption(
-              "This chart displays the predicted battery health "
-              "for the entered battery details."
-          )
+       
         st.caption(
             "These are model predictions, not a physical "
             "battery test or a guarantee of performance."
