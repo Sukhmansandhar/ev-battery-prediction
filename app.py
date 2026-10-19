@@ -118,7 +118,7 @@ if submitted:
         st.progress(
             min(max(health / 100, 0.0), 1.0)
         )
-            st.subheader("📈 Battery Health Visualization")
+                  st.subheader("📈 Battery Health Visualization")
 
           chart_data = pd.DataFrame(
               {"Battery Health (%)": [health]},
