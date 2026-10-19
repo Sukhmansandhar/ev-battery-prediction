@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 import json
+import requests
 
 st.set_page_config(
     page_title="EV Battery Health Predictor",
@@ -82,21 +83,62 @@ with st.form("battery_form"):
 if submitted:
     try:
         input_values = {
-            "cycle_count": cycle_count,
-            "avg_ambient_temp_c": temperature,
-            "voltage_avg_v": voltage,
-            "battery_age_days": battery_age
+            "cycle_count": int(cycle_count),
+            "avg_ambient_temp_c": float(temperature),
+            "voltage_avg_v": float(voltage),
+            "battery_age_days": int(battery_age)
         }
 
-        features = config["features"]
-
-        input_data = pd.DataFrame(
-            [[input_values[name] for name in features]],
-            columns=features
+        response = requests.post(
+            "https://fence-life-inter-horses.trycloudflare.com/predict",
+            json=input_values,
+            timeout=30
         )
 
-        health = float(reg_model.predict(input_data)[0])
-        category = clf_model.predict(input_data)[0]
+        response.raise_for_status()
+        result = response.json()
+
+        health = float(result["state_of_health"])
+        category = result["degradation_category"]
+
+        st.divider()
+        st.subheader("📊 Prediction Results")
+
+        result1, result2 = st.columns(2)
+
+        with result1:
+            st.metric(
+                "Predicted State of Health",
+                f"{health:.2f}%"
+            )
+
+        with result2:
+            st.metric(
+                "Degradation Category",
+                str(category)
+            )
+
+        st.progress(
+            min(max(health / 100, 0.0), 1.0)
+        )
+
+        st.caption(
+            "These are model predictions, not a physical "
+            "battery test or a guarantee of performance."
+        )
+
+    except requests.exceptions.RequestException as error:
+        st.error(
+            "Could not connect to the prediction API. "
+            "Check that Google Colab and the Cloudflare "
+            "tunnel are still running."
+        )
+        st.caption(str(error))
+
+    except Exception as error:
+        st.error("Prediction failed.")
+        st.exception(error)
+
 
         st.divider()
         st.subheader("📊 Prediction Results")
