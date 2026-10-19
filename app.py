@@ -90,16 +90,15 @@ if submitted:
         }
 
         response = requests.post(
-          "https://fence-life-inter-horses.trycloudflare.com/predict",
-            json=input_values,
-            timeout=30
-        )
+         features = config["features"]
 
-        response.raise_for_status()
-        result = response.json()
+input_data = pd.DataFrame(
+    [[input_values[name] for name in features]],
+    columns=features
+)
 
-        health = float(result["state_of_health"])
-        category = result["degradation_category"]
+health = float(reg_model.predict(input_data)[0])
+category = str(clf_model.predict(input_data)[0])
 
         st.divider()
         st.subheader("📊 Prediction Results")
