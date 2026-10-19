@@ -1,0 +1,10 @@
+{
+  "features": [
+    "cycle_count",
+    "avg_ambient_temp_c",
+    "voltage_avg_v",
+    "battery_age_days"
+  ],
+  "regression_target": "state_of_health_pct",
+  "classification_target": "degradation_category"
+}

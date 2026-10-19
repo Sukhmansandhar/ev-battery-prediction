@@ -9,8 +9,8 @@ st.title("🔋 EV Battery Health Predictor")
 st.write("Predict battery health and degradation using Machine Learning.")
 
 # Load the trained models
-reg_model = joblib.load("soh_regression_model.joblib")
-clf_model = joblib.load("degradation_classifier.joblib")
+reg_model = joblib.load("soh_regression_model_compressed.joblib")
+clf_model = joblib.load("degradation_classifier_compressed.joblib")
 
 # Load model settings
 with open("model_config.json", "r") as file:
