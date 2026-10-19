@@ -89,16 +89,15 @@ if submitted:
             "battery_age_days": int(battery_age)
         }
 
-        response = requests.post(
-         features = config["features"]
+        features = config["features"]
 
-input_data = pd.DataFrame(
-    [[input_values[name] for name in features]],
-    columns=features
-)
+        input_data = pd.DataFrame(
+            [[input_values[name] for name in features]],
+            columns=features
+        )
 
-health = float(reg_model.predict(input_data)[0])
-category = str(clf_model.predict(input_data)[0])
+        health = float(reg_model.predict(input_data)[0])
+        category = str(clf_model.predict(input_data)[0])
 
         st.divider()
         st.subheader("📊 Prediction Results")
