@@ -3,81 +3,13 @@ import pandas as pd
 import joblib
 import json
 
-# ---------------- PAGE SETTINGS ----------------
 st.set_page_config(
     page_title="EV Battery Health Predictor",
     page_icon="🔋",
     layout="wide"
 )
 
-# ---------------- CUSTOM DESIGN ----------------
-st.markdown("""
-<style>
-.stApp {
-    background-color: #F5F8FC;
-    color: #17324D;
-}
-
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    max-width: 1100px;
-}
-
-h1, h2, h3, p, label {
-    color: #17324D;
-}
-
-.hero {
-    background: linear-gradient(135deg, #FFFFFF, #E0F2F1);
-    padding: 28px;
-    border-radius: 18px;
-    border: 1px solid #B2DFDB;
-    margin-bottom: 25px;
-}
-
-.hero p {
-    color: #526579;
-}
-
-div[data-testid="stMetric"] {
-    background: #FFFFFF;
-    border: 1px solid #DCE5EF;
-    padding: 20px;
-    border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(23, 50, 77, 0.05);
-}
-
-div.stButton > button,
-div[data-testid="stFormSubmitButton"] > button {
-    background: #0D9488;
-    color: #FFFFFF;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-weight: bold;
-    width: 100%;
-}
-
-div.stButton > button:hover,
-div[data-testid="stFormSubmitButton"] > button:hover {
-    background: #0F766E;
-    color: #FFFFFF;
-    border: none;
-}
-
-section[data-testid="stSidebar"] {
-    background-color: #EAF2F8;
-}
-
-div[data-baseweb="input"] > div,
-div[data-baseweb="select"] > div {
-    background-color: #FFFFFF;
-    border-color: #CBD5E1;
-}
-
-
-# ---------------- LOAD MODELS ----------------
+# Load trained models
 @st.cache_resource
 def load_models():
     reg_model = joblib.load(
@@ -92,41 +24,26 @@ def load_models():
 
     return reg_model, clf_model, config
 
+
 try:
     reg_model, clf_model, config = load_models()
-except Exception as e:
-    st.error("The models could not be loaded.")
-    st.code(str(e))
+except Exception as error:
+    st.error("Unable to load the trained models.")
+    st.exception(error)
     st.stop()
 
- ---------------- HEADER ----------------
+# Project heading
 st.title("🔋 EV Battery Health Predictor")
-
-st.subheader("Machine Learning Battery Analysis")
+st.subheader("Machine Learning Based Battery Analysis")
 
 st.info(
-    "Predict battery health and degradation "
-    "using Machine Learning."
+    "Enter battery details to predict State of Health "
+    "and the degradation category."
 )
 
 st.divider()
 
-# ---------------- SIDEBAR ----------------
-with st.sidebar:
-    st.title("🔋 Battery AI")
-    st.caption("Machine Learning Project")
-    st.divider()
-    st.markdown("### About this project")
-    st.write(
-        "This application uses trained Machine Learning "
-        "models to estimate battery State of Health and "
-        "predict a degradation category."
-    )
-    st.divider()
-    st.caption("Developed for academic demonstration")
-
-
-# ---------------- INPUT SECTION ----------------
+# Battery inputs
 st.subheader("⚙️ Enter Battery Details")
 
 with st.form("battery_form"):
@@ -140,7 +57,7 @@ with st.form("battery_form"):
         )
 
         temperature = st.number_input(
-            "Average Temperature (°C)",
+            "Average Ambient Temperature (°C)",
             value=25.0
         )
 
@@ -160,7 +77,8 @@ with st.form("battery_form"):
     submitted = st.form_submit_button(
         "🔍 Predict Battery Health"
     )
-# ---------------- PREDICTIONS ----------------
+
+# Prediction results
 if submitted:
     try:
         input_values = {
@@ -193,36 +111,22 @@ if submitted:
 
         with result2:
             st.metric(
-                "Predicted Degradation Category",
+                "Degradation Category",
                 str(category)
             )
 
-        st.markdown("### Battery Health Indicator")
-        st.progress(min(max(health / 100, 0.0), 1.0))
-
-        if health >= 80:
-            st.success(
-                "The model predicts a State of Health "
-                "of 80% or higher."
-            )
-        else:
-            st.warning(
-                "The model predicts a State of Health "
-                "below 80%. Review the result in context."
-            )
+        st.progress(
+            min(max(health / 100, 0.0), 1.0)
+        )
 
         st.caption(
             "These are model predictions, not a physical "
-            "battery test or a guarantee of actual performance."
+            "battery test or a guarantee of performance."
         )
 
-    except Exception as e:
-        st.error("Prediction could not be completed.")
-        st.code(str(e))
+    except Exception as error:
+        st.error("Prediction failed.")
+        st.exception(error)
 
-# ---------------- FOOTER ----------------
 st.divider()
-st.caption(
-    "EV Battery Health Predictor | "
-    "Powered by Machine Learning"
-)
+st.caption("EV Battery Health Predictor | Machine Learning Project")
