@@ -99,16 +99,17 @@ except Exception as e:
     st.code(str(e))
     st.stop()
 
-# ---------------- HEADER ----------------
-st.markdown("""
-<div class="hero">
-    <h1>🔋 EV Battery Health Predictor</h1>
-    <p>
-        Machine Learning Based Battery Health Analysis
-        and Degradation Prediction
-    </p>
-</div>
-""", unsafe_allow_html=True)
+ ---------------- HEADER ----------------
+st.title("🔋 EV Battery Health Predictor")
+
+st.subheader("Machine Learning Battery Analysis")
+
+st.info(
+    "Predict battery health and degradation "
+    "using Machine Learning."
+)
+
+st.divider()
 
 # ---------------- SIDEBAR ----------------
 with st.sidebar:
@@ -124,46 +125,41 @@ with st.sidebar:
     st.divider()
     st.caption("Developed for academic demonstration")
 
+
 # ---------------- INPUT SECTION ----------------
-st.subheader("⚙️ Battery Information")
-st.write("Enter the battery details below to generate a prediction.")
+st.subheader("⚙️ Enter Battery Details")
 
 with st.form("battery_form"):
     col1, col2 = st.columns(2)
 
     with col1:
         cycle_count = st.number_input(
-            "🔄 Cycle Count",
+            "Cycle Count",
             min_value=0,
-            value=500,
-            step=10
+            value=500
         )
 
         temperature = st.number_input(
-            "🌡️ Average Ambient Temperature (°C)",
-            value=25.0,
-            step=1.0
+            "Average Temperature (°C)",
+            value=25.0
         )
 
     with col2:
         voltage = st.number_input(
-            "⚡ Average Voltage (V)",
+            "Average Voltage (V)",
             min_value=0.0,
-            value=3.7,
-            step=0.1
+            value=3.7
         )
 
         battery_age = st.number_input(
-            "📅 Battery Age (Days)",
+            "Battery Age (Days)",
             min_value=0,
-            value=365,
-            step=30
+            value=365
         )
 
     submitted = st.form_submit_button(
         "🔍 Predict Battery Health"
     )
-
 # ---------------- PREDICTIONS ----------------
 if submitted:
     try:
