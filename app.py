@@ -90,7 +90,7 @@ if submitted:
         }
 
         response = requests.post(
-            "https://fence-life-inter-horses.trycloudflare.com/predict",
+          "https://fence-life-inter-horses.trycloudflare.com/predict",
             json=input_values,
             timeout=30
         )
