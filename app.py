@@ -14,52 +14,68 @@ st.set_page_config(
 st.markdown("""
 <style>
 .stApp {
-    background-color: #0b1220;
-    color: #f1f5f9;
+    background-color: #F5F8FC;
+    color: #17324D;
 }
+
 .block-container {
     padding-top: 2rem;
     padding-bottom: 2rem;
     max-width: 1100px;
 }
+
 h1, h2, h3, p, label {
-    color: #f1f5f9;
+    color: #17324D;
 }
+
 .hero {
-    background: linear-gradient(135deg, #13283c, #124e52);
+    background: linear-gradient(135deg, #FFFFFF, #E0F2F1);
     padding: 28px;
     border-radius: 18px;
-    border: 1px solid #246b70;
+    border: 1px solid #B2DFDB;
     margin-bottom: 25px;
 }
+
 .hero p {
-    color: #cbd5e1;
+    color: #526579;
 }
+
 div[data-testid="stMetric"] {
-    background: #142235;
-    border: 1px solid #294158;
+    background: #FFFFFF;
+    border: 1px solid #DCE5EF;
     padding: 20px;
     border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(23, 50, 77, 0.05);
 }
-div.stButton > button {
-    background: #14b8a6;
-    color: #071521;
+
+div.stButton > button,
+div[data-testid="stFormSubmitButton"] > button {
+    background: #0D9488;
+    color: #FFFFFF;
     border: none;
     border-radius: 10px;
     padding: 12px 20px;
     font-weight: bold;
     width: 100%;
 }
-div.stButton > button:hover {
-    background: #2dd4bf;
-    color: #071521;
+
+div.stButton > button:hover,
+div[data-testid="stFormSubmitButton"] > button:hover {
+    background: #0F766E;
+    color: #FFFFFF;
     border: none;
 }
+
 section[data-testid="stSidebar"] {
-    background-color: #101b2b;
+    background-color: #EAF2F8;
 }
-</style>
-""", unsafe_allow_html=True)
+
+div[data-baseweb="input"] > div,
+div[data-baseweb="select"] > div {
+    background-color: #FFFFFF;
+    border-color: #CBD5E1;
+}
+
 
 # ---------------- LOAD MODELS ----------------
 @st.cache_resource
