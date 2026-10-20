@@ -57,6 +57,7 @@ def load_models():
 
 
 @app.get("/")
+@app.head("/")
 def home():
     return {"message": "EV Battery Prediction API is running"}
 
