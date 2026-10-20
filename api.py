@@ -1,11 +1,15 @@
+from pathlib import Path
+from functools import lru_cache
+import json
+import joblib
+import numpy as np
+
 from fastapi import FastAPI
 from pydantic import BaseModel
-from functools import lru_cache
-import joblib
-import json
-import pandas as pd
 
 app = FastAPI(title="EV Battery Prediction API")
+
+BASE_DIR = Path(__file__).resolve().parent
 
 
 class BatteryInput(BaseModel):
@@ -18,13 +22,13 @@ class BatteryInput(BaseModel):
 @lru_cache(maxsize=1)
 def load_models():
     reg_model = joblib.load(
-        "soh_regression_model_compressed.joblib"
+        BASE_DIR / "soh_regression_model_compressed.joblib"
     )
     clf_model = joblib.load(
-        "degradation_classifier_compressed.joblib"
+        BASE_DIR / "degradation_classifier_compressed.joblib"
     )
 
-    with open("model_config.json", "r") as file:
+    with open(BASE_DIR / "model_config.json", "r") as file:
         config = json.load(file)
 
     return reg_model, clf_model, config
@@ -51,9 +55,10 @@ def predict(data: BatteryInput):
         "battery_age_days": data.battery_age_days,
     }
 
-    input_data = pd.DataFrame(
-        [[values[name] for name in config["features"]]],
-        columns=config["features"],
+    features = config["features"]
+    input_data = np.array(
+        [[values[name] for name in features]],
+        dtype=float,
     )
 
     health_value = float(reg_model.predict(input_data)[0])
