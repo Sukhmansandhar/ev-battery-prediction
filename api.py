@@ -80,8 +80,9 @@ def health():
 def predict(data: BatteryInput):
     try:
         reg_path = (
-            BASE_DIR / "soh_regression_model_compressed.joblib"
-        )
+    BASE_DIR / "soh_regression_model_small.joblib"
+)
+        
         clf_path = (
             BASE_DIR / "degradation_classifier_compressed.joblib"
         )
