@@ -1,16 +1,16 @@
 import os
 
-# Limit numerical-library threads to reduce resource overhead.
-# These must be set before importing NumPy or scikit-learn.
+# Limit numerical-library threads to reduce memory overhead.
+# Set these before importing NumPy or scikit-learn.
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
-from pathlib import Path
-from functools import lru_cache
+import gc
 import json
 import logging
+from pathlib import Path
 
 import joblib
 import numpy as np
@@ -32,35 +32,17 @@ class BatteryInput(BaseModel):
     battery_age_days: int
 
 
-@lru_cache(maxsize=1)
-def load_models():
-    """Load models once per worker process."""
-    reg_path = BASE_DIR / "soh_regression_model_compressed.joblib"
-    clf_path = BASE_DIR / "degradation_classifier_compressed.joblib"
+def load_config():
     config_path = BASE_DIR / "model_config.json"
 
-    # Check all required files before loading either model.
-    for path in (reg_path, clf_path, config_path):
-        if not path.is_file():
-            raise FileNotFoundError(
-                f"Required file not found: {path.name}"
-            )
-
-        size_mb = path.stat().st_size / (1024 * 1024)
-        logger.info("%s: %.2f MB on disk", path.name, size_mb)
-
-    logger.info("Loading regression model...")
-    reg_model = joblib.load(reg_path)
-    logger.info("Regression model loaded successfully")
-
-    logger.info("Loading classifier model...")
-    clf_model = joblib.load(clf_path)
-    logger.info("Classifier model loaded successfully")
+    if not config_path.is_file():
+        raise FileNotFoundError("model_config.json not found")
 
     with open(config_path, "r", encoding="utf-8") as file:
         config = json.load(file)
 
     features = config.get("features")
+
     expected_features = {
         "cycle_count",
         "avg_ambient_temp_c",
@@ -75,10 +57,10 @@ def load_models():
 
     if set(features) != expected_features:
         raise ValueError(
-            f"Unexpected model features in model_config.json: {features}"
+            f"Unexpected model features: {features}"
         )
 
-    return reg_model, clf_model, config
+    return config
 
 
 @app.get("/")
@@ -91,14 +73,29 @@ def home():
 
 @app.get("/health")
 def health():
-    # Lightweight check: intentionally does not load the models.
     return {"status": "ok"}
 
 
 @app.post("/predict")
 def predict(data: BatteryInput):
     try:
-        reg_model, clf_model, config = load_models()
+        reg_path = (
+            BASE_DIR / "soh_regression_model_compressed.joblib"
+        )
+        clf_path = (
+            BASE_DIR / "degradation_classifier_compressed.joblib"
+        )
+
+        config = load_config()
+
+        for path in (reg_path, clf_path):
+            if not path.is_file():
+                raise FileNotFoundError(
+                    f"Required model file not found: {path.name}"
+                )
+
+            size_mb = path.stat().st_size / (1024 * 1024)
+            logger.info("%s: %.2f MB on disk", path.name, size_mb)
 
         values = {
             "cycle_count": data.cycle_count,
@@ -107,22 +104,34 @@ def predict(data: BatteryInput):
             "battery_age_days": data.battery_age_days,
         }
 
-        features = config["features"]
-
         input_data = np.asarray(
-            [[values[name] for name in features]],
+            [[values[name] for name in config["features"]]],
             dtype=np.float64,
         )
+
+        # Load and run the regression model first.
+        logger.info("Loading regression model")
+        reg_model = joblib.load(reg_path)
 
         logger.info("Running regression prediction")
         health_value = float(
             reg_model.predict(input_data)[0]
         )
 
+        del reg_model
+        gc.collect()
+
+        # Load and run the classifier separately.
+        logger.info("Loading classifier model")
+        clf_model = joblib.load(clf_path)
+
         logger.info("Running degradation classification")
         category = str(
             clf_model.predict(input_data)[0]
         )
+
+        del clf_model
+        gc.collect()
 
         logger.info("Prediction completed successfully")
 
@@ -133,8 +142,11 @@ def predict(data: BatteryInput):
 
     except Exception as error:
         logger.exception("Prediction failed")
+
         raise HTTPException(
             status_code=500,
-            detail=f"Prediction failed: {type(error).__name__}. "
-                   "Check Render logs for details.",
+            detail=(
+                f"Prediction failed: {type(error).__name__}. "
+                "Check Render logs for details."
+            ),
         ) from error
